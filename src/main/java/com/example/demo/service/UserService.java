@@ -18,9 +18,16 @@ public class UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     public User registerUser(User user) {
 
-        User savedUser = userRepository.save(user);
+        // Check if the username already exists in the database
+        User existingUser = userRepository.findByUsername(user.getUsername());
+        if (existingUser != null) {
+            throw new UsernameAlreadyExistsException("Username already exists");
+        }
 
-        // Visszaadjuk a mentett felhasználót a hívónak
+        // Encrypt the user's password before saving to the database
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+
+        User savedUser = userRepository.save(user);
         return savedUser;
     }
 
@@ -45,11 +52,19 @@ public class UserService {
             super(message);
         }
     }
+
     public static class InvalidPasswordException extends RuntimeException {
         public InvalidPasswordException(String message) {
             super(message);
         }
     }
+    public static class UsernameAlreadyExistsException extends RuntimeException {
+        public UsernameAlreadyExistsException(String message) {
+            super(message);
+        }
+    }
+
+
 
 
 }
